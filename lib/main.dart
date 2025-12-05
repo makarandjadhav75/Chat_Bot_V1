@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'google_services.dart';
 
 void main() {
@@ -17,6 +18,7 @@ class MyChatApp extends StatelessWidget {
   }
 }
 
+
 class ChatScreen extends StatefulWidget {
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -27,6 +29,16 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<Map<String, String>> messages = [];
   final gemini = GeminiService();
   bool isLoading = false;
+
+  // Voice Input
+  late stt.SpeechToText speech;
+  bool isListening = false;
+
+  @override
+  void initState() {
+    super.initState();
+    speech = stt.SpeechToText();
+  }
 
   sendMessage() async {
     final userMessage = controller.text.trim();
@@ -44,6 +56,26 @@ class _ChatScreenState extends State<ChatScreen> {
       messages.add({"role": "bot", "text": botReply});
       isLoading = false;
     });
+  }
+
+  // Voice Function
+  void startListening() async {
+    bool available = await speech.initialize();
+
+    if (available) {
+      setState(() => isListening = true);
+
+      speech.listen(onResult: (val) {
+        setState(() {
+          controller.text = val.recognizedWords;
+        });
+      });
+    }
+  }
+
+  void stopListening() {
+    setState(() => isListening = false);
+    speech.stop();
   }
 
   @override
@@ -87,18 +119,32 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.all(10),
             child: Row(
               children: [
+                // Text Field
                 Expanded(
                   child: TextField(
                     controller: controller,
                     decoration: const InputDecoration(
-                        hintText: "Type a message...",
+                        hintText: "Type or Speak...",
                         border: OutlineInputBorder()),
                   ),
                 ),
+
+                // Mic Button
+                GestureDetector(
+                  onLongPress: startListening,
+                  onLongPressUp: stopListening,
+                  child: Icon(
+                    isListening ? Icons.mic : Icons.mic_none,
+                    color: isListening ? Colors.red : Colors.black,
+                    size: 30,
+                  ),
+                ),
+
+                // Send Button
                 IconButton(
                   icon: const Icon(Icons.send),
                   onPressed: sendMessage,
-                )
+                ),
               ],
             ),
           )

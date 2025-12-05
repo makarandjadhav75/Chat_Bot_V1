@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class GeminiService {
-  final String apiKey = "//api key";
+  final String apiKey = "AIzaSyBsDWyPFb1RndpBfmz9m6ZarNv9zK5WTU4";
 
   Future<String> sendMessage(String message) async {
     final url = Uri.parse(
@@ -59,4 +59,3 @@ class GeminiService {
 
 
 
-AIzaSyBsDWyPFb1RndpBfmz9m6ZarNv9zK5WTU4
